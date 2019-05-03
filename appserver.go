@@ -6,22 +6,32 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ipfsync/ipfsync/core"
+
 	"github.com/gin-gonic/gin"
 )
 
 type AppServer struct {
 	router  *gin.Engine
 	httpsrv *http.Server
+	api     *core.Api
 }
 
-func NewAppServer() *AppServer {
-	srv := &AppServer{router: gin.Default()}
+func NewAppServer(api *core.Api) *AppServer {
+	srv := &AppServer{router: gin.Default(), api: api}
 	srv.buildRoutes()
 	return srv
 }
 
 func (srv *AppServer) buildRoutes() {
-
+	srv.router.GET("/peers", func(c *gin.Context) {
+		peers, _ := srv.api.Peers()
+		var str string
+		for _, p := range peers {
+			str += p.Address().String() + "\n"
+		}
+		c.String(http.StatusOK, str)
+	})
 }
 
 func (srv *AppServer) Start() {
