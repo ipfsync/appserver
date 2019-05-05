@@ -14,9 +14,10 @@ import (
 )
 
 type AppServer struct {
-	router  *gin.Engine
-	httpsrv *http.Server
-	api     *core.Api
+	router    *gin.Engine
+	httpsrv   *http.Server
+	api       *core.Api
+	wsClients map[*WsClient]bool
 }
 
 func NewAppServer(api *core.Api) *AppServer {
@@ -63,12 +64,35 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func (srv *AppServer) serveWs(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+func (srv *AppServer) wsServe(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrade:", err)
 		return
 	}
+}
 
-	defer ws.Close()
+func (srv *AppServer) registerWsClient(c *wsClient) {
+	srv.wsClients[c] = true
+}
+
+func (srv *AppServer) unregisterWsClient(c *wsClient) {
+	delete(srv.wsClients, c)
+}
+
+func (srv *AppServer) wsRead(conn *websocket.Conn) {
+	defer func() {
+		delete(srv.wsClients, conn)
+		if err := conn.Close(); err != nil {
+			log.Printf("Unable to close websocket connection. Error: %v", err)
+		}
+	}()
+
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Printf("error: %v", err)
+			break
+		}
+	}
 }
