@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/ipfsync/ipfsync/core"
 
 	"github.com/gin-gonic/gin"
@@ -54,4 +56,19 @@ func (srv *AppServer) Stop() error {
 	defer cancel()
 
 	return srv.httpsrv.Shutdown(ctx)
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+func (srv *AppServer) serveWs(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("upgrade:", err)
+		return
+	}
+
+	defer ws.Close()
 }
