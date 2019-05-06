@@ -70,6 +70,8 @@ func (srv *AppServer) wsServe(w http.ResponseWriter, r *http.Request) {
 		log.Println("upgrade:", err)
 		return
 	}
+
+	srv.registerWsClient(&wsClient{srv: srv, conn: conn})
 }
 
 func (srv *AppServer) registerWsClient(c *wsClient) {
@@ -78,21 +80,4 @@ func (srv *AppServer) registerWsClient(c *wsClient) {
 
 func (srv *AppServer) unregisterWsClient(c *wsClient) {
 	delete(srv.wsClients, c)
-}
-
-func (srv *AppServer) wsRead(conn *websocket.Conn) {
-	defer func() {
-		delete(srv.wsClients, conn)
-		if err := conn.Close(); err != nil {
-			log.Printf("Unable to close websocket connection. Error: %v", err)
-		}
-	}()
-
-	for {
-		_, message, err := conn.ReadMessage()
-		if err != nil {
-			log.Printf("error: %v", err)
-			break
-		}
-	}
 }
