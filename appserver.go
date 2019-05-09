@@ -17,7 +17,7 @@ type AppServer struct {
 	router    *gin.Engine
 	httpsrv   *http.Server
 	api       *core.Api
-	wsClients map[*WsClient]bool
+	wsClients map[*wsClient]bool
 }
 
 func NewAppServer(api *core.Api) *AppServer {
@@ -71,7 +71,7 @@ func (srv *AppServer) wsServe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	srv.registerWsClient(&wsClient{srv: srv, conn: conn})
+	srv.registerWsClient(newWsClient(srv, conn))
 }
 
 func (srv *AppServer) registerWsClient(c *wsClient) {
@@ -80,4 +80,10 @@ func (srv *AppServer) registerWsClient(c *wsClient) {
 
 func (srv *AppServer) unregisterWsClient(c *wsClient) {
 	delete(srv.wsClients, c)
+}
+
+func (srv *AppServer) Boardcast(msg *MessageBroadcast) {
+	for client := range srv.wsClients {
+		client.send <- message
+	}
 }

@@ -1,9 +1,10 @@
 package appserver
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -51,6 +52,14 @@ type wsClient struct {
 	send chan []byte
 }
 
+func newWsClient(srv *AppServer, conn *websocket.Conn) *wsClient {
+	return &wsClient{
+		srv:  srv,
+		conn: conn,
+		send: make(chan []byte, 100),
+	}
+}
+
 func (c *wsClient) readPump() {
 	defer func() {
 		c.srv.unregisterWsClient(c)
@@ -75,6 +84,7 @@ func (c *wsClient) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
+		c.srv.unregisterWsClient(c)
 		_ = c.conn.Close()
 	}()
 
