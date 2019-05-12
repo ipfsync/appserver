@@ -29,19 +29,19 @@ type MessageError struct {
 type MessageCmd struct {
 	Id   string
 	Cmd  string
-	Data map[string]string
+	Data map[string]interface{}
 }
 
 type MessageReply struct {
 	Id    string
 	Ok    bool
-	Data  map[string]string
+	Data  map[string]interface{}
 	Error MessageError
 }
 
 type MessageBroadcast struct {
 	Event string
-	Data  map[string]string
+	Data  map[string]interface{}
 }
 
 type wsClient struct {
@@ -49,14 +49,14 @@ type wsClient struct {
 	conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan []byte
+	send chan interface{}
 }
 
 func newWsClient(srv *AppServer, conn *websocket.Conn) *wsClient {
 	return &wsClient{
 		srv:  srv,
 		conn: conn,
-		send: make(chan []byte, 100),
+		send: make(chan interface{}, 100),
 	}
 }
 
@@ -99,7 +99,7 @@ func (c *wsClient) writePump() {
 				return
 			}
 
-			err := c.conn.WriteMessage(websocket.TextMessage, message)
+			err := c.conn.WriteJSON(message)
 			if err != nil {
 				return
 			}

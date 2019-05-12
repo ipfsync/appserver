@@ -13,6 +13,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Message interface {
+}
+
 type AppServer struct {
 	router    *gin.Engine
 	httpsrv   *http.Server
@@ -82,8 +85,8 @@ func (srv *AppServer) unregisterWsClient(c *wsClient) {
 	delete(srv.wsClients, c)
 }
 
-func (srv *AppServer) Boardcast(msg *MessageBroadcast) {
+func (srv *AppServer) Broadcast(msg interface{}) {
 	for client := range srv.wsClients {
-		client.send <- message
+		client.send <- msg
 	}
 }
