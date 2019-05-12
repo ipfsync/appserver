@@ -30,6 +30,10 @@ func NewAppServer(api *core.Api) *AppServer {
 }
 
 func (srv *AppServer) buildRoutes() {
+	srv.router.GET("/ws", func(c *gin.Context) {
+		srv.wsServe(c.Writer, c.Request)
+	})
+
 	srv.router.GET("/peers", func(c *gin.Context) {
 		peers, _ := srv.api.Peers()
 		var str string
