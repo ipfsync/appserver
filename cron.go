@@ -6,6 +6,7 @@ import (
 	"github.com/robfig/cron"
 )
 
+// appCron is for scheduled jobs for UI data pushing only.
 type appCron struct {
 	srv *AppServer
 	rc  *cron.Cron
@@ -38,6 +39,7 @@ func (c *appCron) start() {
 
 func (c *appCron) stop() {
 	c.rc.Stop()
+	log.Println("Cron job stopped")
 }
 
 func (c *appCron) peers() {

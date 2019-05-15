@@ -58,9 +58,6 @@ func (srv *AppServer) Start() {
 		Handler: srv.router,
 	}
 
-	// Start cron jobs
-	srv.cron.start()
-
 	go func() {
 		if err := srv.httpsrv.ListenAndServe(); err != http.ErrServerClosed {
 			// Error starting or closing listener:
@@ -100,10 +97,17 @@ func (srv *AppServer) wsServe(w http.ResponseWriter, r *http.Request) {
 
 func (srv *AppServer) registerWsClient(c *wsClient) {
 	srv.wsClients[c] = true
+
+	// Start cron jobs
+	srv.cron.start()
 }
 
 func (srv *AppServer) unregisterWsClient(c *wsClient) {
 	delete(srv.wsClients, c)
+
+	if len(srv.wsClients) == 0 {
+		srv.cron.stop()
+	}
 }
 
 func (srv *AppServer) Broadcast(msg interface{}) {
