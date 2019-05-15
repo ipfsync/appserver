@@ -24,7 +24,11 @@ type AppServer struct {
 }
 
 func NewAppServer(api *core.Api) *AppServer {
-	srv := &AppServer{router: gin.Default(), api: api}
+	srv := &AppServer{
+		router:    gin.Default(),
+		api:       api,
+		wsClients: make(map[*wsClient]bool),
+	}
 	srv.buildRoutes()
 	return srv
 }
