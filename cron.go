@@ -1,6 +1,10 @@
 package appserver
 
-import "github.com/robfig/cron"
+import (
+	"log"
+
+	"github.com/robfig/cron"
+)
 
 type appCron struct {
 	srv *AppServer
@@ -12,18 +16,31 @@ func newCron(srv *AppServer) *appCron {
 
 	// Cron jobs
 	rc := cron.New()
-
-	// Peers data
-	_ = rc.AddFunc("@every 1s", c.Peers)
-
-	rc.Start()
-
 	c.rc = rc
+
+	c.buildJobs()
 
 	return c
 }
 
-func (c *appCron) Peers() {
+func (c *appCron) buildJobs() {
+	// Peers data
+	err := c.rc.AddFunc("@every 1s", c.peers)
+	if err != nil {
+		log.Printf("Unable to add job: %v", err)
+	}
+}
+
+func (c *appCron) start() {
+	c.rc.Start()
+	log.Println("Cron job started")
+}
+
+func (c *appCron) stop() {
+	c.rc.Stop()
+}
+
+func (c *appCron) peers() {
 	peers, err := c.srv.api.Peers()
 	if err != nil {
 		return

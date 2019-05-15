@@ -20,6 +20,7 @@ type AppServer struct {
 	router    *gin.Engine
 	httpsrv   *http.Server
 	api       *core.Api
+	cron      *appCron
 	wsClients map[*wsClient]bool
 }
 
@@ -29,6 +30,8 @@ func NewAppServer(api *core.Api) *AppServer {
 		api:       api,
 		wsClients: make(map[*wsClient]bool),
 	}
+	cron := newCron(srv)
+	srv.cron = cron
 	srv.buildRoutes()
 	return srv
 }
@@ -54,6 +57,9 @@ func (srv *AppServer) Start() {
 		Addr:    ":8080",
 		Handler: srv.router,
 	}
+
+	// Start cron jobs
+	srv.cron.start()
 
 	go func() {
 		if err := srv.httpsrv.ListenAndServe(); err != http.ErrServerClosed {
@@ -81,11 +87,15 @@ var upgrader = websocket.Upgrader{
 func (srv *AppServer) wsServe(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("upgrade:", err)
+		log.Printf("Upgrade error: %v", err)
 		return
 	}
 
-	srv.registerWsClient(newWsClient(srv, conn))
+	client := newWsClient(srv, conn)
+	srv.registerWsClient(client)
+
+	go client.readPump()
+	go client.writePump()
 }
 
 func (srv *AppServer) registerWsClient(c *wsClient) {
