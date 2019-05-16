@@ -53,12 +53,19 @@ type peerinfo struct {
 }
 
 var peersinfo []peerinfo
+var peerscnt int
 
 func (c *appCron) peers() {
 	peers, err := c.srv.api.Peers()
 	if err != nil {
 		return
 	}
+	if len(peers) != peerscnt {
+		peerscnt = len(peers)
+	} else {
+		return
+	}
+
 	peersinfo = nil
 	for _, p := range peers {
 		l, _ := p.Latency()
