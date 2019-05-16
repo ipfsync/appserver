@@ -2,6 +2,10 @@ package appserver
 
 import (
 	"log"
+	"sort"
+	"time"
+
+	net "github.com/libp2p/go-libp2p-net"
 
 	"github.com/robfig/cron"
 )
@@ -42,20 +46,38 @@ func (c *appCron) stop() {
 	log.Println("Cron job stopped")
 }
 
+type peerinfo struct {
+	Address   string
+	Direction net.Direction
+	Latency   time.Duration
+}
+
+var peersinfo []peerinfo
+
 func (c *appCron) peers() {
 	peers, err := c.srv.api.Peers()
 	if err != nil {
 		return
 	}
-	var addr []string
+	peersinfo = nil
 	for _, p := range peers {
-		addr = append(addr, p.Address().String())
+		l, _ := p.Latency()
+		peersinfo = append(peersinfo, peerinfo{
+			Address:   p.Address().String(),
+			Direction: p.Direction(),
+			Latency:   l,
+		})
 	}
+
+	// Sort
+	sort.Slice(peersinfo, func(i, j int) bool {
+		return peersinfo[i].Address < peersinfo[j].Address
+	})
 
 	msg := &MessageBroadcast{
 		Event: "peers",
 		Data: map[string]interface{}{
-			"addresses": addr,
+			"peers": peersinfo,
 		},
 	}
 
