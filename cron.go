@@ -2,10 +2,6 @@ package appserver
 
 import (
 	"log"
-	"sort"
-	"time"
-
-	net "github.com/libp2p/go-libp2p-net"
 
 	"github.com/robfig/cron"
 )
@@ -46,47 +42,28 @@ func (c *appCron) stop() {
 	log.Println("Cron job stopped")
 }
 
-type peerinfo struct {
-	Address   string
-	Direction net.Direction
-	Latency   time.Duration
-}
-
-var peersinfo []peerinfo
-var peerscnt int
-
-func (c *appCron) peers() {
-	peers, err := c.srv.api.Peers()
-	if err != nil {
-		return
-	}
-	if len(peers) != peerscnt {
-		peerscnt = len(peers)
-	} else {
-		return
-	}
-
-	peersinfo = nil
-	for _, p := range peers {
-		l, _ := p.Latency()
-		peersinfo = append(peersinfo, peerinfo{
-			Address:   p.Address().String(),
-			Direction: p.Direction(),
-			Latency:   l,
-		})
-	}
-
-	// Sort
-	sort.Slice(peersinfo, func(i, j int) bool {
-		return peersinfo[i].Address < peersinfo[j].Address
-	})
-
+func (c *appCron) sendBroadcast(event string, data map[string]interface{}) {
 	msg := &MessageBroadcast{
-		Event: "peers",
-		Data: map[string]interface{}{
-			"peers": peersinfo,
-		},
+		Event: event,
+		Data:  data,
 	}
 
 	c.srv.Broadcast(msg)
+}
+
+func (c *appCron) peers() {
+
+	peers, changed, err := c.srv.api.Peers()
+	if err != nil {
+		log.Println("Unable to fetch peers. Error %v", err)
+		return
+	}
+
+	if !changed {
+		return
+	}
+
+	c.sendBroadcast("peers", map[string]interface{}{
+		"peers": peers,
+	})
 }

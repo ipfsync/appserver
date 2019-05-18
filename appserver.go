@@ -13,7 +13,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Message interface {
+type MessageError struct {
+	Code    int
+	Message string
+}
+
+type MessageCmd struct {
+	Id   string
+	Cmd  string
+	Data map[string]interface{}
+}
+
+type MessageReply struct {
+	Id    string
+	Ok    bool
+	Data  map[string]interface{}
+	Error MessageError
+}
+
+type MessageBroadcast struct {
+	Event string
+	Data  map[string]interface{}
 }
 
 type AppServer struct {
@@ -39,15 +59,6 @@ func NewAppServer(api *core.Api) *AppServer {
 func (srv *AppServer) buildRoutes() {
 	srv.router.GET("/ws", func(c *gin.Context) {
 		srv.wsServe(c.Writer, c.Request)
-	})
-
-	srv.router.GET("/peers", func(c *gin.Context) {
-		peers, _ := srv.api.Peers()
-		var str string
-		for _, p := range peers {
-			str += p.Address().String() + "\n"
-		}
-		c.String(http.StatusOK, str)
 	})
 }
 

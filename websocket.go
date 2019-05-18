@@ -21,29 +21,6 @@ const (
 	maxMessageSize = 512
 )
 
-type MessageError struct {
-	Code    int
-	Message string
-}
-
-type MessageCmd struct {
-	Id   string
-	Cmd  string
-	Data map[string]interface{}
-}
-
-type MessageReply struct {
-	Id    string
-	Ok    bool
-	Data  map[string]interface{}
-	Error MessageError
-}
-
-type MessageBroadcast struct {
-	Event string
-	Data  map[string]interface{}
-}
-
 type wsClient struct {
 	srv  *AppServer
 	conn *websocket.Conn
@@ -74,9 +51,10 @@ func (c *wsClient) readPump() {
 		var msg MessageCmd
 		err := c.conn.ReadJSON(&msg)
 		if err != nil {
-			log.Printf("error: %v", err)
-			break
+			log.Printf("Invalid cmd error: %v", err)
+			continue
 		}
+		go c.handleCmd(&msg)
 	}
 }
 
@@ -111,4 +89,8 @@ func (c *wsClient) writePump() {
 		}
 
 	}
+}
+
+func (c *wsClient) handleCmd(msg *MessageCmd) {
+
 }
