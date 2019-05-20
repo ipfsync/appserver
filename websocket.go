@@ -52,7 +52,7 @@ func (c *wsClient) readPump() {
 		err := c.conn.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("Invalid cmd error: %v", err)
-			continue
+			break
 		}
 		go c.handleCmd(&msg)
 	}
