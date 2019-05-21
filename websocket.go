@@ -21,6 +21,11 @@ const (
 	maxMessageSize = 512
 )
 
+const (
+	errCodeUnknownCmd = 1000 // Unknown command error
+	errCodeInternal   = 1001 // Internal error
+)
+
 type wsClient struct {
 	srv  *AppServer
 	conn *websocket.Conn
@@ -91,6 +96,35 @@ func (c *wsClient) writePump() {
 	}
 }
 
-func (c *wsClient) handleCmd(msg *MessageCmd) {
+func (c *wsClient) sendReply(id string, data map[string]interface{}) {
+	msg := &MessageReply{
+		Id:   id,
+		Ok:   true,
+		Data: data,
+	}
+	c.send <- msg
+}
 
+func (c *wsClient) sendError(id string, errCode int, errMsg string, data map[string]interface{}) {
+	msg := &MessageReply{
+		Id:    id,
+		Ok:    false,
+		Data:  data,
+		Error: MessageError{errCode, errMsg},
+	}
+	c.send <- msg
+}
+
+func (c *wsClient) handleCmd(msg *MessageCmd) {
+	switch msg.Cmd {
+	case "peers":
+		peers, _, err := c.srv.api.Peers()
+		if err != nil {
+			c.sendError(msg.Id, errCodeInternal, err.Error(), nil)
+			return
+		}
+		c.sendReply(msg.Id, map[string]interface{}{"peers": peers})
+	default:
+		c.sendError(msg.Id, errCodeUnknownCmd, "Unknown Command", nil)
+	}
 }

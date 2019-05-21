@@ -55,7 +55,7 @@ func (c *appCron) peers() {
 
 	peers, changed, err := c.srv.api.Peers()
 	if err != nil {
-		log.Println("Unable to fetch peers. Error %v", err)
+		log.Printf("Unable to fetch peers. Error %v", err)
 		return
 	}
 
