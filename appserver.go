@@ -60,6 +60,10 @@ func (srv *AppServer) buildRoutes() {
 	srv.router.GET("/ws", func(c *gin.Context) {
 		srv.wsServe(c.Writer, c.Request)
 	})
+
+	srv.router.GET("/test", func(c *gin.Context) {
+		_, _ = srv.api.NewCollection()
+	})
 }
 
 func (srv *AppServer) Start() {
