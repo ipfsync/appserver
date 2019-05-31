@@ -17,3 +17,5 @@ replace github.com/ipfsync/ipfsmanager => ../ipfsmanager
 replace github.com/ipfsync/ipfsync => ../ipfsync
 
 replace github.com/ipfsync/common => ../common
+
+replace github.com/ipfsync/resource => ../resource

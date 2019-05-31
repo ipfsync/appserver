@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/ipfsync/ipfsync/core"
+	"github.com/ipfsync/ipfsync/core/api"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,13 +41,13 @@ type MessageBroadcast struct {
 type AppServer struct {
 	router    *gin.Engine
 	httpsrv   *http.Server
-	api       *core.Api
+	api       *api.Api
 	cfg       *viper.Viper
 	cron      *appCron
 	wsClients map[*wsClient]bool
 }
 
-func NewAppServer(api *core.Api, cfg *viper.Viper) *AppServer {
+func NewAppServer(api *api.Api, cfg *viper.Viper) *AppServer {
 	srv := &AppServer{
 		router:    gin.Default(),
 		api:       api,
@@ -66,7 +66,7 @@ func (srv *AppServer) buildRoutes() {
 	})
 
 	srv.router.GET("/test", func(c *gin.Context) {
-		_, _ = srv.api.NewCollection()
+		_, _ = srv.api.NewCollection("", "")
 	})
 }
 
