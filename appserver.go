@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/gorilla/websocket"
 
 	"github.com/ipfsync/ipfsync/core"
@@ -40,14 +42,16 @@ type AppServer struct {
 	router    *gin.Engine
 	httpsrv   *http.Server
 	api       *core.Api
+	cfg       *viper.Viper
 	cron      *appCron
 	wsClients map[*wsClient]bool
 }
 
-func NewAppServer(api *core.Api) *AppServer {
+func NewAppServer(api *core.Api, cfg *viper.Viper) *AppServer {
 	srv := &AppServer{
 		router:    gin.Default(),
 		api:       api,
+		cfg:       cfg,
 		wsClients: make(map[*wsClient]bool),
 	}
 	cron := newCron(srv)
