@@ -8,7 +8,6 @@ require (
 	github.com/ipfsync/ipfsync v0.0.0
 	github.com/robfig/cron v1.1.0
 	github.com/spf13/viper v1.4.0
-	google.golang.org/genproto v0.0.0-20180831171423-11092d34479b // indirect
 )
 
 replace github.com/ipfsync/appserver => ../appserver

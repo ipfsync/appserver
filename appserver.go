@@ -72,6 +72,7 @@ func (srv *AppServer) buildRoutes() {
 
 func (srv *AppServer) Start() {
 
+	// TODO: automatically choose an unused port
 	srv.httpsrv = &http.Server{
 		Addr:    ":8080",
 		Handler: srv.router,
