@@ -67,6 +67,8 @@ func (srv *AppServer) buildRoutes() {
 
 	srv.router.GET("/test", func(c *gin.Context) {
 		_, _ = srv.api.NewCollection("", "")
+		col, _ := srv.api.ListCollections("")
+		c.JSON(200, col)
 	})
 }
 

@@ -124,6 +124,13 @@ func (c *wsClient) handleCmd(msg *MessageCmd) {
 			return
 		}
 		c.sendReply(msg.Id, map[string]interface{}{"peers": peers})
+	case "listcollections":
+		col, err := c.srv.api.ListCollections("")
+		if err != nil {
+			c.sendError(msg.Id, errCodeInternal, err.Error(), nil)
+			return
+		}
+		c.sendReply(msg.Id, map[string]interface{}{"collections": col})
 	default:
 		c.sendError(msg.Id, errCodeUnknownCmd, "Unknown Command", nil)
 	}
